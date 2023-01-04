@@ -97,9 +97,10 @@ const ImageOfTheDay = (apod) => {
 const getImageOfTheDay = (state) => {
     let { apod } = state
 
-    fetch(`http://localhost:3000/apod`)
+    fetch(`https://renshou753-super-space-parakeet-57rjq74ppgh47pw-3000.preview.app.github.dev/apod`)
         .then(res => res.json())
         .then(apod => updateStore(store, { apod }))
 
     return data
 }
+
