@@ -1,0 +1,38 @@
+.container--slide {
+    width: 100%;
+    margin: 100px auto;
+    font-family: sans-serif;
+  }
+
+  .single {
+    width: 1000px;
+    height: 600px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 100px;
+  }
+  .single ul {
+    list-style: outside none;
+    width: 10000%;
+    position: relative;
+    top: 0;
+    right: 0;
+    transition: all 0.6s ease;
+    padding: 0;
+    margin: 0;
+  }
+  .single li {
+    float: left;
+  }
+
+.single-box {
+    background-color: #22c3bc;
+    width: 1000px;
+    height: 600px;
+    text-align: center;
+    line-height: 300px;
+    font-size: 50px;
+    color: #fff;
+}
+

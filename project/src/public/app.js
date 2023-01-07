@@ -6,6 +6,7 @@ let store = {
     max_date: '',
     active_tab: 'tab-1',
     rovers: ['curiosity', 'opportunity', 'spirit'],
+    slide_current_index: 0
 }
 
 // add our markup to the page
@@ -14,12 +15,12 @@ const root = document.getElementById('root')
 const updateStore = (store, newState) => {    
     store = Object.assign(store, newState)
     render(root, store)
-    console.log(store)
 }
 
 const render = async (root, state) => {
     root.innerHTML = App(state)
     add_tab_listener()
+    add_slider_listener()
 }
 
 // create content
@@ -75,6 +76,20 @@ const App = (state) => {
             </section>
         </div>
 
+        <div class="container--slide">
+            <h3>Images</h3>
+            <a href="#" class="s-prev" id="s-prev">Prev</a>
+            <a href="#" class="s-next" id="s-next">Next</a>
+            <div>Total Images: ${store.images.length}, Current Index: ${store.slide_current_index}</div>
+            <br>
+            <br>
+            <div class="single">
+            <ul>
+                ${getImages()}
+            </ul>
+            </div>
+        </div>
+
     </main>
     <footer></footer>
     `
@@ -99,6 +114,25 @@ const getActiveClass = (t) => {
     }
 }
 
+const getImages = () => {
+    const images = store.images.slice(store.slide_current_index)
+    if (images.length == 0){
+        return ''
+    }
+    const htmls =  images.reduce((acc, v) => {
+        const div = `
+        <li>
+        <div class="single-box">
+            <img src="${v.img_src}" alt="${v.id}">
+        </div>
+        </li>
+        `
+        return acc + div
+    }, '')
+
+    return htmls
+}
+
 const add_tab_listener = () => {
 	// store tabs variable
 	const tabs = Array.from(document.querySelectorAll("ul.nav-tabs > li"));
@@ -107,9 +141,13 @@ const add_tab_listener = () => {
         const targetPane = clickEvent.target
         const activePaneId = targetPane.getAttribute('href')
 
-        // set active tab in store
-        store.active_tab = activePaneId.substring(1)
-
+        // reset current image idx, set active tab in store
+        const tab_name = activePaneId.substring(1)
+        if (store.active_tab != tab_name){
+            store.slide_current_index = 0
+            store.active_tab = tab_name
+        }
+        
         // get rover name
         const rover = getRoverName(activePaneId)
 
@@ -128,15 +166,40 @@ window.addEventListener('load', ()=>{
     render(root, store)
 })
 
-const getRover = (rover) => {
-
-    return ''
-} 
 
 const queryRoverApi = (rover) => {
-    fetch(`https://renshou753-super-space-parakeet-57rjq74ppgh47pw-3000.preview.app.github.dev/rovers?rover=${rover}`)
+    fetch(`http://localhost:3000/rovers?rover=${rover}`)
         .then(res => res.json())
         .then(data => {
+            data.images = data.images.photos
             updateStore(store, data)
         })
 }
+
+const add_slider_listener = () => {
+    next = document.getElementById('s-next');
+    prev = document.getElementById('s-prev');
+  
+    next.addEventListener('click', incSlides);
+    prev.addEventListener('click', decSlides);
+}
+
+const incSlides = () => {
+    sliderToIndex(store.slide_current_index + 1)
+}
+
+const decSlides = () => {
+    sliderToIndex(store.slide_current_index - 1)
+}
+
+// Set currentIndex (of the slider) to index and update styles
+function sliderToIndex (idx) {
+    if (idx < 0){
+        idx = 0
+    }
+    const data = {
+        'slide_current_index': idx,
+    }
+    updateStore(store, data)
+  }
+
