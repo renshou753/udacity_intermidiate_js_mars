@@ -1,6 +1,6 @@
 
 const store = Immutable.Map({
-    images: [],
+    images: Immutable.List([]),
     landing_date: '',
     launch_date: '',
     status: '',
@@ -20,8 +20,8 @@ const updateStore = (store, newState) => {
 
 const render = async (root, state) => {
     root.innerHTML = App(state)
-    add_tab_listener()
-    add_slider_listener()
+    add_tab_listener(state)
+    add_slider_listener(state)
 }
 
 // create content
@@ -37,12 +37,12 @@ const App = (state) => {
         <div class="container--tabs">
             <section class="row">
                 <ul class="nav nav-tabs">
-                    <li class="${getActiveClass('tab-1')}"><a href="#tab-1">Tab 1</a></li>
-                    <li class="${getActiveClass('tab-2')}"><a href="#tab-2">Tab 2</a></li>
-                    <li class="${getActiveClass('tab-3')}"><a href="#tab-3">Tab 3</a></li>
+                    <li class="${getActiveClass('tab-1', state)}"><a href="#tab-1">Tab 1</a></li>
+                    <li class="${getActiveClass('tab-2', state)}"><a href="#tab-2">Tab 2</a></li>
+                    <li class="${getActiveClass('tab-3', state)}"><a href="#tab-3">Tab 3</a></li>
                 </ul>
                 <div class="tab-content">
-                    <div id="tab-1" class="tab-pane ${getActiveClass('tab-1')}"> 
+                    <div id="tab-1" class="tab-pane ${getActiveClass('tab-1', state)}"> 
                         <span class="glyphicon glyphicon-leaf glyphicon--home--feature two columns text-center"></span>
                         <span class="col-md-10">
                             <h3>Rover: Curiosity</h3>
@@ -52,7 +52,7 @@ const App = (state) => {
                             <p>Most Recent Date photo taken: ${state.get('max_date')}</p>
                         </span>
                     </div> 
-                    <div id="tab-2" class="tab-pane ${getActiveClass('tab-2')}">
+                    <div id="tab-2" class="tab-pane ${getActiveClass('tab-2', state)}">
                         <span class="glyphicon glyphicon-fire glyphicon--home--feature two columns text-center"></span>
                         <span class="col-md-10">
                             <h3>Rover: Opportunity</h3>
@@ -62,7 +62,7 @@ const App = (state) => {
                             <p>Most Recent Date photo taken: ${state.get('max_date')}</p>
                         </span>
                     </div>
-                    <div id="tab-3" class="tab-pane ${getActiveClass('tab-3')}">
+                    <div id="tab-3" class="tab-pane ${getActiveClass('tab-3', state)}">
                         <span class="glyphicon glyphicon-tint glyphicon--home--feature two columns text-center"></span>
                         <span class="col-md-10">
                             <h3>Rover: Spirit</h3>
@@ -80,7 +80,7 @@ const App = (state) => {
             <h3>Images</h3>
             <a href="#" class="s-prev" id="s-prev">Prev</a>
             <a href="#" class="s-next" id="s-next">Next</a>
-            <div>Total Images: ${state.get('images').length}, Current Index: ${state.get('slide_current_index')}</div>
+            <div>Total Images: ${state.get('images').toJS().length}, Current Index: ${state.get('slide_current_index')}</div>
             <br>
             <br>
             <div class="single">
@@ -106,17 +106,16 @@ const getRoverName = (t) => {
     }
 }
 
-const getActiveClass = (t) => {
-    if (t == store.get('active_tab')){
+const getActiveClass = (t, state) => {
+    if (t == state.get('active_tab')){
         return 'active'
     }else{
         return ''
     }
 }
 
-const getImages = (store) => {
-    const images = store.get('images').slice(store.get('slide_current_index'))
-    console.log(images)
+const getImages = (state) => {
+    const images = state.get('images').toJS().slice(state.get('slide_current_index'))
     if (images.length == 0){
         return ''
     }
@@ -134,7 +133,7 @@ const getImages = (store) => {
     return htmls
 }
 
-const add_tab_listener = () => {
+const add_tab_listener = (state) => {
 	// store tabs variable
 	const tabs = Array.from(document.querySelectorAll("ul.nav-tabs > li"));
     
@@ -144,17 +143,14 @@ const add_tab_listener = () => {
 
         // reset current image idx, set active tab in store
         const tab_name = activePaneId.substring(1)
-        if (store.get('active_tab') != tab_name){
-            store.slide_current_index = 0
-            store.active_tab = tab_name
+        if (state.get('active_tab') != tab_name){
+            // get rover name
+            const rover = getRoverName(activePaneId)
+
+            // fire api request to retrieve rover data
+            queryRoverApi(rover, tab_name)
         }
         
-        // get rover name
-        const rover = getRoverName(activePaneId)
-
-        // fire api request to retrieve rover data
-        queryRoverApi(rover)
-
     }
 
     tabs.map(e => {
@@ -163,44 +159,50 @@ const add_tab_listener = () => {
 }
 
 window.addEventListener('load', ()=>{
-    queryRoverApi('curiosity')
+    queryRoverApi('curiosity', 'tab-1')
     render(root, store)
 })
 
 
-const queryRoverApi = (rover) => {
+const queryRoverApi = (rover, tab_name) => {
     fetch(`http://localhost:3000/rovers?rover=${rover}`)
         .then(res => res.json())
         .then(data => {
-            data.images = data.images.photos
+            data.images = Immutable.List(data.images.photos)
+            data.active_tab = tab_name
+            data.slide_current_index = 0
             updateStore(store, data)
         })
 }
 
 const add_slider_listener = (state) => {
-    next = document.getElementById('s-next');
-    prev = document.getElementById('s-prev');
+    next = document.getElementById('s-next')
+    next.state = state
+    prev = document.getElementById('s-prev')
+    prev.state = state
   
-    next.addEventListener('click', incSlides(state));
-    prev.addEventListener('click', decSlides(state));
+    next.addEventListener('click', incSlides)
+    prev.addEventListener('click', decSlides)
 }
 
-const incSlides = () => {
-    sliderToIndex(store.get('slide_current_index') + 1)
+const incSlides = (clickEvent) => {
+    const state = clickEvent.currentTarget.state
+    sliderToIndex(state.get('slide_current_index') + 1, state)
 }
 
-const decSlides = () => {
-    sliderToIndex(store.get('slide_current_index') - 1)
+const decSlides = (clickEvent) => {
+    const state = clickEvent.currentTarget.state
+    sliderToIndex(state.get('slide_current_index') - 1, state)
 }
 
 // Set currentIndex (of the slider) to index and update styles
-function sliderToIndex (idx) {
+const sliderToIndex = (idx, state) => {
     if (idx < 0){
         idx = 0
     }
     const data = {
         'slide_current_index': idx,
     }
-    updateStore(store, data)
+    updateStore(state, data)
   }
 
