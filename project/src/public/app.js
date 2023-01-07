@@ -1,19 +1,20 @@
-let store = {
+
+const store = Immutable.Map({
     images: [],
     landing_date: '',
     launch_date: '',
     status: '',
     max_date: '',
     active_tab: 'tab-1',
-    rovers: ['curiosity', 'opportunity', 'spirit'],
+    rovers: Immutable.List(['curiosity', 'opportunity', 'spirit']),
     slide_current_index: 0
-}
+})
 
 // add our markup to the page
 const root = document.getElementById('root')
 
 const updateStore = (store, newState) => {    
-    store = Object.assign(store, newState)
+    store = store.merge(newState)
     render(root, store)
 }
 
@@ -25,7 +26,6 @@ const render = async (root, state) => {
 
 // create content
 const App = (state) => {
-    let { rovers, apod } = state
 
     return `
     <header></header>
@@ -46,30 +46,30 @@ const App = (state) => {
                         <span class="glyphicon glyphicon-leaf glyphicon--home--feature two columns text-center"></span>
                         <span class="col-md-10">
                             <h3>Rover: Curiosity</h3>
-                            <p>Launch Date: ${store.launch_date}</p>
-                            <p>Landing Date: ${store.landing_date}</p>
-                            <p>Status: ${store.status}</p>
-                            <p>Most Recent Date photo taken: ${store.max_date}</p>
+                            <p>Launch Date: ${state.get('launch_date')}</p>
+                            <p>Landing Date: ${state.get('landing_date')}</p>
+                            <p>Status: ${state.get('status')}</p>
+                            <p>Most Recent Date photo taken: ${state.get('max_date')}</p>
                         </span>
                     </div> 
                     <div id="tab-2" class="tab-pane ${getActiveClass('tab-2')}">
                         <span class="glyphicon glyphicon-fire glyphicon--home--feature two columns text-center"></span>
                         <span class="col-md-10">
                             <h3>Rover: Opportunity</h3>
-                            <p>Launch Date: ${store.launch_date}</p>
-                            <p>Landing Date: ${store.landing_date}</p>
-                            <p>Status: ${store.status}</p>
-                            <p>Most Recent Date photo taken: ${store.max_date}</p>
+                            <p>Launch Date: ${state.get('launch_date')}</p>
+                            <p>Landing Date: ${state.get('landing_date')}</p>
+                            <p>Status: ${state.get('status')}</p>
+                            <p>Most Recent Date photo taken: ${state.get('max_date')}</p>
                         </span>
                     </div>
                     <div id="tab-3" class="tab-pane ${getActiveClass('tab-3')}">
                         <span class="glyphicon glyphicon-tint glyphicon--home--feature two columns text-center"></span>
                         <span class="col-md-10">
                             <h3>Rover: Spirit</h3>
-                            <p>Launch Date: ${store.launch_date}</p>
-                            <p>Landing Date: ${store.landing_date}</p>
-                            <p>Status: ${store.status}</p>
-                            <p>Most Recent Date photo taken: ${store.max_date}</p>
+                            <p>Launch Date: ${state.get('launch_date')}</p>
+                            <p>Landing Date: ${state.get('landing_date')}</p>
+                            <p>Status: ${state.get('status')}</p>
+                            <p>Most Recent Date photo taken: ${state.get('max_date')}</p>
                         </span>
                     </div>
                 </div>
@@ -80,12 +80,12 @@ const App = (state) => {
             <h3>Images</h3>
             <a href="#" class="s-prev" id="s-prev">Prev</a>
             <a href="#" class="s-next" id="s-next">Next</a>
-            <div>Total Images: ${store.images.length}, Current Index: ${store.slide_current_index}</div>
+            <div>Total Images: ${state.get('images').length}, Current Index: ${state.get('slide_current_index')}</div>
             <br>
             <br>
             <div class="single">
             <ul>
-                ${getImages()}
+                ${getImages(state)}
             </ul>
             </div>
         </div>
@@ -107,15 +107,16 @@ const getRoverName = (t) => {
 }
 
 const getActiveClass = (t) => {
-    if (t == store.active_tab){
+    if (t == store.get('active_tab')){
         return 'active'
     }else{
         return ''
     }
 }
 
-const getImages = () => {
-    const images = store.images.slice(store.slide_current_index)
+const getImages = (store) => {
+    const images = store.get('images').slice(store.get('slide_current_index'))
+    console.log(images)
     if (images.length == 0){
         return ''
     }
@@ -143,7 +144,7 @@ const add_tab_listener = () => {
 
         // reset current image idx, set active tab in store
         const tab_name = activePaneId.substring(1)
-        if (store.active_tab != tab_name){
+        if (store.get('active_tab') != tab_name){
             store.slide_current_index = 0
             store.active_tab = tab_name
         }
@@ -176,20 +177,20 @@ const queryRoverApi = (rover) => {
         })
 }
 
-const add_slider_listener = () => {
+const add_slider_listener = (state) => {
     next = document.getElementById('s-next');
     prev = document.getElementById('s-prev');
   
-    next.addEventListener('click', incSlides);
-    prev.addEventListener('click', decSlides);
+    next.addEventListener('click', incSlides(state));
+    prev.addEventListener('click', decSlides(state));
 }
 
 const incSlides = () => {
-    sliderToIndex(store.slide_current_index + 1)
+    sliderToIndex(store.get('slide_current_index') + 1)
 }
 
 const decSlides = () => {
-    sliderToIndex(store.slide_current_index - 1)
+    sliderToIndex(store.get('slide_current_index') - 1)
 }
 
 // Set currentIndex (of the slider) to index and update styles
