@@ -7,6 +7,7 @@ const store = Immutable.Map({
     max_date: '',
     active_tab: 'tab-1',
     rovers: Immutable.List(['curiosity', 'opportunity', 'spirit']),
+    tab_names: Immutable.List(['tab-1', 'tab-2', 'tab-3']),
     slide_current_index: 0
 })
 
@@ -26,6 +27,7 @@ const render = async (root, state) => {
 }
 
 // create content
+// high order function, return functions which return value
 const App = (state) => {
 
     return `
@@ -37,11 +39,7 @@ const App = (state) => {
             <p>Please select which rover's information you want to view.</p>
 
             <section class="row">
-                <ul class="nav nav-tabs">
-                    <li class="${getActiveClass('tab-1', state)}"><a href="#tab-1">Tab 1</a></li>
-                    <li class="${getActiveClass('tab-2', state)}"><a href="#tab-2">Tab 2</a></li>
-                    <li class="${getActiveClass('tab-3', state)}"><a href="#tab-3">Tab 3</a></li>
-                </ul>
+                ${generateTabs(state)}
                 <div class="tab-content">
                     <div id="tab-1" class="tab-pane ${getActiveClass('tab-1', state)}"> 
                         <span class="glyphicon glyphicon-leaf glyphicon--home--feature two columns text-center"></span>
@@ -108,6 +106,26 @@ const getRoverName = (t) => {
     }
 }
 
+// generate tabs
+// high order function, returns a function that return li html element
+const generateTabs = (state) => {
+    return `
+    <ul class="nav nav-tabs">
+        ${generateTabHtml(state)}
+    </ul>
+    `
+}
+
+// generate tab
+// high order function, returns a function that return value
+const generateTabHtml = (state) => {
+    return state.get('tab_names').toJS().map((e)=>{
+        return `<li class="${getActiveClass(e, state)}"><a href="#${e}">${e}</a></li>`
+    }).reduce((acc, v)=>{
+        return acc + v
+    }, '')
+}
+
 // dynamic component, return active if the tab name is active
 const getActiveClass = (t, state) => {
     return t == state.get('active_tab') ? 'active' : ""
@@ -116,6 +134,7 @@ const getActiveClass = (t, state) => {
 // return dynamic html based on the image state
 const getImages = (state) => {
     const images = state.get('images').toJS().slice(state.get('slide_current_index'))
+
     if (images.length == 0){
         return ''
     }
