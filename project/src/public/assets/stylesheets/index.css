@@ -13,7 +13,7 @@ header {
 
 main {
   flex: 1;
-  padding: 20px;
+  padding: 4px;
 }
 
 footer {
@@ -23,16 +23,43 @@ footer {
 /* -------------------  TABLET  --------------------- */
 @media (min-width: 768px) {
   /* use mobile */
+  .single {
+    width: 760px;
+    height: 380px;
+  }
+  .single-box {
+    width: 760px;
+    height: 380px;
+}
+
 }
 
 /* -------------------  DESKTOP  -------------------- */
 
 @media (min-width: 1224px) {
   /* use mobile */
+  .single {
+    width: 1200px;
+    height: 600px;
+  }
+  .single-box {
+    width: 1200px;
+    height: 600px;
+}
+
 }
 
 /* -------------------  LARGE SCREENS  -------------- */
 
 @media (min-width: 1824px) {
   /* use mobile */
+  .single {
+    width: 1800px;
+    height: 900px;
+  }
+  .single-box {
+    width: 1800px;
+    height: 900px;
+}
+
 }

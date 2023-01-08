@@ -1,4 +1,4 @@
-
+// global store
 const store = Immutable.Map({
     images: Immutable.List([]),
     landing_date: '',
@@ -18,6 +18,7 @@ const updateStore = (store, newState) => {
     render(root, store)
 }
 
+// render page on screen, add event listner
 const render = async (root, state) => {
     root.innerHTML = App(state)
     add_tab_listener(state)
@@ -31,10 +32,10 @@ const App = (state) => {
     <header></header>
     <main>
 
-        <h3>Mars Dashboard</h3>
-        <p>You are going to create a dashboard that consumes the NASA API. Your dashboard will allow the user to select which rover's information they want to view. Once they have selected a rover, they will be able to see the most recent images taken by that rover, as well as important information about the rover and its mission. Your app will make use of all the functional concepts and practices you have learned in this course, and the goal is that you would become very comfortable using pure functions and iterating over, reshaping, and accessing information from complex API responses.</p>
-
         <div class="container--tabs">
+            <h3>Mars Dashboard</h3>
+            <p>Please select which rover's information you want to view.</p>
+
             <section class="row">
                 <ul class="nav nav-tabs">
                     <li class="${getActiveClass('tab-1', state)}"><a href="#tab-1">Tab 1</a></li>
@@ -95,6 +96,7 @@ const App = (state) => {
     `
 }
 
+// get rover name based on tab name
 const getRoverName = (t) => {
     switch (t){
         case '#tab-1':
@@ -106,20 +108,19 @@ const getRoverName = (t) => {
     }
 }
 
+// dynamic component, return active if the tab name is active
 const getActiveClass = (t, state) => {
-    if (t == state.get('active_tab')){
-        return 'active'
-    }else{
-        return ''
-    }
+    return t == state.get('active_tab') ? 'active' : ""
 }
 
+// return dynamic html based on the image state
 const getImages = (state) => {
     const images = state.get('images').toJS().slice(state.get('slide_current_index'))
     if (images.length == 0){
         return ''
     }
-    const htmls =  images.reduce((acc, v) => {
+
+    return images.reduce((acc, v) => {
         const div = `
         <li>
         <div class="single-box">
@@ -130,12 +131,11 @@ const getImages = (state) => {
         return acc + div
     }, '')
 
-    return htmls
 }
 
 const add_tab_listener = (state) => {
 	// store tabs variable
-	const tabs = Array.from(document.querySelectorAll("ul.nav-tabs > li"));
+	const tabs = Immutable.List(Array.from(document.querySelectorAll("ul.nav-tabs > li")));
     
     const tabClick = (clickEvent) => {
         const targetPane = clickEvent.target
@@ -158,12 +158,13 @@ const add_tab_listener = (state) => {
     })
 }
 
+// initial load when page is ready
 window.addEventListener('load', ()=>{
     queryRoverApi('curiosity', 'tab-1')
     render(root, store)
 })
 
-
+// api request to retrieve rover data
 const queryRoverApi = (rover, tab_name) => {
     fetch(`http://localhost:3000/rovers?rover=${rover}`)
         .then(res => res.json())
@@ -185,17 +186,19 @@ const add_slider_listener = (state) => {
     prev.addEventListener('click', decSlides)
 }
 
+// inc slide index by 1
 const incSlides = (clickEvent) => {
     const state = clickEvent.currentTarget.state
     sliderToIndex(state.get('slide_current_index') + 1, state)
 }
 
+// dec slide index by 1
 const decSlides = (clickEvent) => {
     const state = clickEvent.currentTarget.state
     sliderToIndex(state.get('slide_current_index') - 1, state)
 }
 
-// Set currentIndex (of the slider) to index and update styles
+// Set currentIndex (of the slider) to index
 const sliderToIndex = (idx, state) => {
     if (idx < 0){
         idx = 0

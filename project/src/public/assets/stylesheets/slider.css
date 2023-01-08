@@ -5,8 +5,8 @@
   }
 
   .single {
-    width: 1000px;
-    height: 600px;
+    width: 360px;
+    height: 180px;
     margin: 0 auto;
     position: relative;
     overflow: hidden;
@@ -28,8 +28,8 @@
 
 .single-box {
     background-color: #22c3bc;
-    width: 1000px;
-    height: 600px;
+    width: 360px;
+    height: 180px;
     text-align: center;
     line-height: 300px;
     font-size: 50px;
